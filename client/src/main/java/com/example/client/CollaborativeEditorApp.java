@@ -39,7 +39,7 @@ import java.io.IOException;
 public class CollaborativeEditorApp extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/Welcome.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
         Parent root = loader.load();
 
         WelcomeController controller = loader.getController();

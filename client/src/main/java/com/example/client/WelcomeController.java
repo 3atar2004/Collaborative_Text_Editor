@@ -15,21 +15,38 @@ public class WelcomeController {
     @FXML private TextField sessionField;
     @FXML private HBox joinSessionBox;
 
+/*
     @FXML
-    private void handleStartEditing() throws IOException {
-        String username = usernameField.getText().trim();
-        if (!username.isEmpty()) {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
-            Parent root = loader.load();
+*/
+//    private void handleStartEditing() throws IOException {
+//        String username = usernameField.getText().trim();
+//        if (!username.isEmpty()) {
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
+//            Parent root = loader.load();
+//
+//            EditorController controller = loader.getController();
+//            //controller.initialize(username);
+//
+//            Stage stage = (Stage) usernameField.getScene().getWindow();
+//            stage.setScene(new Scene(root, 800, 600));
+//            stage.setTitle("Collaborative Editor - " + username);
+//        }
+//    }
+@FXML
+private void handleStartEditing() throws IOException {
+    String username = usernameField.getText().trim();
+    if (!username.isEmpty()) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
+        Parent root = loader.load();
 
-            EditorController controller = loader.getController();
-            //controller.initialize(username);
+        EditorController controller = loader.getController();
+        controller.initializeWithUsername(username);
 
-            Stage stage = (Stage) usernameField.getScene().getWindow();
-            stage.setScene(new Scene(root, 800, 600));
-            stage.setTitle("Collaborative Editor - " + username);
-        }
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setScene(new Scene(root, 800, 600));
+        stage.setTitle("Collaborative Editor - " + username);
     }
+}
 
     @FXML
     private void handleJoinSession() {
@@ -41,11 +58,11 @@ public class WelcomeController {
         String username = usernameField.getText().trim();
         String sessionCode = sessionField.getText().trim();
         if (!username.isEmpty() && !sessionCode.isEmpty()) {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/collaborative/editor/view/editor.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
             Parent root = loader.load();
 
             EditorController controller = loader.getController();
-            //controller.initialize(username);
+            controller.initializeWithUsername(username); // Pass the username
 
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
