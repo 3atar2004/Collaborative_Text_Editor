@@ -41,12 +41,14 @@ public class CollaborativeEditorApp extends Application {
     private static final int SERVER_PORT = 8080;
     private static final String DISCOVERY_MESSAGE = "WEATHER_SERVER_DISCOVERY";
     private static final int DISCOVERY_TIMEOUT_MS = 3000;
-    private String  SERVER_URL;
+    private String SERVER_URL;
+    private String SERVER_IP;
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
             String serverIp = discoverServer();
             SERVER_URL = "http://" + serverIp + ":" + SERVER_PORT;
+            SERVER_IP = serverIp;
             if (serverIp == null) {
                 System.out.println("No server found on LAN. Please check:");
                 System.out.println("1. Server is running");
@@ -61,10 +63,9 @@ public class CollaborativeEditorApp extends Application {
         }
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
         Parent root = loader.load();
-
         WelcomeController controller = loader.getController();
-        // No need to set stage since WelcomeController retrieves it dynamically
         controller.SERVER_URL = SERVER_URL;
+        controller.SERVER_IP = SERVER_IP;
         primaryStage.setTitle("Collaborative Text Editor");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
@@ -72,7 +73,6 @@ public class CollaborativeEditorApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
-
     }
     private static String discoverServer() {
         try (DatagramSocket socket = new DatagramSocket()) {

@@ -415,7 +415,7 @@ public class EditorController {
         this.stage = stage;
     }
 
-    public void initializeWithUsername(String username, String editorCode, String viewerCode) {
+    public void initializeWithUsername(String username, String editorCode, String viewerCode,String SERVER_IP) {
         this.username = username;
         if (editorCodeField != null && viewerCodeField != null) {
             editorCodeField.setText(editorCode);
@@ -424,6 +424,7 @@ public class EditorController {
         if (userList != null) {
             userList.getItems().add(username);
         }
+        webSocketHandler.IP=SERVER_IP;
         initialize();
     }
 

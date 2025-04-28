@@ -19,6 +19,7 @@ public class WelcomeController {
     @FXML private HBox joinSessionBox;
     HttpHelper helper;
     public String SERVER_URL;
+    public String SERVER_IP;
 @FXML
 private void handleStartEditing() throws IOException {
     String username = usernameField.getText().trim();
@@ -31,7 +32,7 @@ private void handleStartEditing() throws IOException {
         String viewer=sessionCodes.get("viewerCode");
         System.out.println(editor+ " "+viewer);
         EditorController controller = loader.getController();
-        controller.initializeWithUsername(username, editor,viewer);
+        controller.initializeWithUsername(username, editor,viewer,SERVER_IP);
         Stage stage = (Stage) usernameField.getScene().getWindow();
         stage.setScene(new Scene(root, 800, 600));
         stage.setTitle("Collaborative Editor - " + username);
@@ -55,7 +56,7 @@ private void handleStartEditing() throws IOException {
             String viewer=sessionCodes.get("viewerCode");
             EditorController controller = loader.getController();
             System.out.println(editor+ " "+viewer);
-            controller.initializeWithUsername(username,editor,viewer); // Pass the username
+            controller.initializeWithUsername(username,editor,viewer,SERVER_URL); // Pass the username
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Collaborative Editor - " + username);
