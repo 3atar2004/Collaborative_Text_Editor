@@ -9,12 +9,15 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+
 
 public class WelcomeController {
     @FXML private TextField usernameField;
     @FXML private TextField sessionField;
     @FXML private HBox joinSessionBox;
-
+    HttpHelper helper;
 /*
     @FXML
 */
@@ -38,10 +41,12 @@ private void handleStartEditing() throws IOException {
     if (!username.isEmpty()) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
         Parent root = loader.load();
-
+        Map<String,String> sessionCodes= helper.createSession(usernameField.getText().trim());
+        String editor=sessionCodes.get("editorCode");
+        String viewer=sessionCodes.get("viewerCode");
+        System.out.println(editor+ " "+viewer);
         EditorController controller = loader.getController();
-        controller.initializeWithUsername(username);
-
+        controller.initializeWithUsername(username, editor,viewer);
         Stage stage = (Stage) usernameField.getScene().getWindow();
         stage.setScene(new Scene(root, 800, 600));
         stage.setTitle("Collaborative Editor - " + username);
@@ -60,10 +65,12 @@ private void handleStartEditing() throws IOException {
         if (!username.isEmpty() && !sessionCode.isEmpty()) {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
             Parent root = loader.load();
-
+            Map<String,String> sessionCodes= helper.joinSession(sessionCode,username);
+            String editor=sessionCodes.get("editorCode");
+            String viewer=sessionCodes.get("viewerCode");
             EditorController controller = loader.getController();
-            controller.initializeWithUsername(username); // Pass the username
-
+            System.out.println(editor+ " "+viewer);
+            controller.initializeWithUsername(username,editor,viewer); // Pass the username
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Collaborative Editor - " + username);
