@@ -18,29 +18,14 @@ public class WelcomeController {
     @FXML private TextField sessionField;
     @FXML private HBox joinSessionBox;
     HttpHelper helper;
-/*
-    @FXML
-*/
-//    private void handleStartEditing() throws IOException {
-//        String username = usernameField.getText().trim();
-//        if (!username.isEmpty()) {
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
-//            Parent root = loader.load();
-//
-//            EditorController controller = loader.getController();
-//            //controller.initialize(username);
-//
-//            Stage stage = (Stage) usernameField.getScene().getWindow();
-//            stage.setScene(new Scene(root, 800, 600));
-//            stage.setTitle("Collaborative Editor - " + username);
-//        }
-//    }
+    public String SERVER_URL;
 @FXML
 private void handleStartEditing() throws IOException {
     String username = usernameField.getText().trim();
     if (!username.isEmpty()) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
         Parent root = loader.load();
+        helper.baseUrl=SERVER_URL;
         Map<String,String> sessionCodes= helper.createSession(usernameField.getText().trim());
         String editor=sessionCodes.get("editorCode");
         String viewer=sessionCodes.get("viewerCode");
