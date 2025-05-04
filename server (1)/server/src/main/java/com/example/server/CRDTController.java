@@ -1,6 +1,12 @@
 
         package com.example.server;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -9,7 +15,9 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class CRDTController {
     public DocumentService service;
-
+     private final Map<String, List<CRDTOperation>> operationHistory = new ConcurrentHashMap<>();
+    private final int MAX_HISTORY = 1000;
+    
     public CRDTController(DocumentService Service) {
         this.service = Service;
     }
@@ -17,6 +25,18 @@ public class CRDTController {
     @MessageMapping("/room/{roomId}")
     @SendTo("/topic/room/{roomId}")
     public CRDTOperation handleRoomMessage(@DestinationVariable String roomId, CRDTOperation op) {
+         op.setTimestamp(System.currentTimeMillis());
+        op.setSequenceNumber(operationHistory.getOrDefault(roomId, new ArrayList<>()).size() + 1);
+        service.trackOperation(roomId, op);
+        operationHistory.compute(roomId, (key, history) -> {
+            if (history == null) history = new ArrayList<>();
+            history.add(op);
+            if (history.size() > MAX_HISTORY) {
+                history = history.subList(history.size() - MAX_HISTORY, history.size());
+            }
+            return history;
+        });
+
         // Step 1: Validate room code
         if (!service.isValidCode(roomId)) {
             System.out.println("Invalid room ID: " + roomId);
@@ -49,6 +69,12 @@ public class CRDTController {
 
         //Step 5: Return the op to broadcast to all users in the room
         return op;
+    }
+    public List<CRDTOperation> getMissedOperations(String roomId, long lastReceivedTimestamp) {
+        List<CRDTOperation> history = operationHistory.getOrDefault(roomId, new ArrayList<>());
+        return history.stream()
+                .filter(op -> op.getTimestamp() > lastReceivedTimestamp)
+                .collect(Collectors.toList());
     }
 }
 

@@ -8,11 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 @Service
 public class DocumentService {
 
     private final Map<String, Document> documents = new ConcurrentHashMap<>();
     private final Map<String, String> viewerToEditorMap = new ConcurrentHashMap<>();
+    private final Map<String, List<CRDTOperation>> operationHistory = new ConcurrentHashMap<>();
+    private final int MAX_HISTORY = 1000;
+    private final Map<String, ClientSession> activeSessions = new ConcurrentHashMap<>();
     private final Map<String, List<String>> Userlist= new ConcurrentHashMap<>();
     public synchronized Map<String,String>joinSession(String code,String Username)
     {
@@ -52,6 +56,7 @@ public class DocumentService {
         );
 
     }
+
     public synchronized Map<String, String> createSession(String username) {
         String editorCode = generateReadableCode() + "-e";
         String viewerCode = editorCode.replace("-e", "-v");
@@ -152,7 +157,64 @@ public class DocumentService {
         }
         return editorcode;
     }
-
-
+    public void registerClientActivity(String roomCode, String userId) {
+        ClientSession session = activeSessions.computeIfAbsent(userId + "|" + roomCode, 
+            key -> new ClientSession(userId, roomCode));
+        session.setLastActive(System.currentTimeMillis());
+    }
+    
+    public boolean isWithinReconnectionWindow(String userId, String roomCode) {
+        ClientSession session = activeSessions.get(userId + "|" + roomCode);
+        if (session == null) return false;
+        
+        return System.currentTimeMillis() - session.getLastActive() <= 300000; // 5 minutes
+    }
+    private static class ClientSession {
+        private String userId;
+        private String roomCode;
+        private long lastActive;
+        
+        public ClientSession(String userId, String roomCode) {
+            this.userId = userId;
+            this.roomCode = roomCode;
+            this.lastActive = System.currentTimeMillis();
+        }
+        public String getUserId() {
+            return userId;
+        }  
+        public String getRoomCode() {
+            return roomCode;
+        }
+        public long getLastActive() {
+            return lastActive;
+        }   
+        public void setLastActive(long lastActive) {
+            this.lastActive = lastActive;
+        }
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+        public void setRoomCode(String roomCode) {
+            this.roomCode = roomCode;
+        }
+    }
+    public void trackOperation(String roomId, CRDTOperation op) {
+        operationHistory.compute(roomId, (key, history) -> {
+            if (history == null) history = new ArrayList<>();
+            op.setTimestamp(System.currentTimeMillis());
+            op.setSequenceNumber(history.size() + 1);
+            history.add(op);
+            if (history.size() > MAX_HISTORY) {
+                history = history.subList(history.size() - MAX_HISTORY, history.size());
+            }
+            return history;
+        });
+    }
+     public List<CRDTOperation> getMissedOperations(String roomId, long since) {
+        List<CRDTOperation> history = operationHistory.getOrDefault(roomId, new ArrayList<>());
+        return history.stream()
+                .filter(op -> op.getTimestamp() > since)
+                .collect(Collectors.toList());
+    }
 
 }

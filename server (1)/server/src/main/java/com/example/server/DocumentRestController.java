@@ -1,4 +1,5 @@
 package com.example.server;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DocumentRestController {
 
     public DocumentService documentService;
-    public DocumentRestController(DocumentService documentService) {this.documentService = documentService;}
+    private final CRDTController crdtController;
+    public DocumentRestController(DocumentService documentService, CRDTController crdtController) {
+        this.documentService = documentService; 
+         this.crdtController = crdtController;
+        }
 
     @PostMapping("/create")
     public Map<String,String > create(@RequestBody String username) {
@@ -64,6 +69,18 @@ public class DocumentRestController {
 @GetMapping("/getdoc")
 public Document get(@RequestParam String code) {  // Change to @RequestParam
     return documentService.getDocumentFromCode(code);
+}
+    
+@GetMapping("/missed-operations/{roomId}")
+    public List<CRDTOperation> getMissedOperations(
+            @PathVariable String roomId,
+            @RequestParam long since) {
+        return crdtController.getMissedOperations(roomId, since);
+    }
+
+@GetMapping("/document-state/{roomId}")
+public Document getFullDocumentState(@PathVariable String roomId) {
+    return documentService.getDocumentFromCode(roomId);
 }
 
 }

@@ -1,6 +1,8 @@
 package com.example.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.cbor.MappingJackson2CborHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -9,6 +11,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,6 +137,18 @@ public  Document requestDocument(String roomCode) throws IOException, Interrupte
             System.out.println("Exiting..");
             return null;
 }
+    }
+    public List<CRDTOperation> getMissedOperations(String roomCode, long lastReceivedTimestamp) {
+        String url = baseUrl + "/missed-operations/" + roomCode + "?since=" + lastReceivedTimestamp;
+        try {
+            ResponseEntity<List> response = restTemplate.getForEntity(url, List.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to get missed operations: " + e.getMessage());
+        }
+        return Collections.emptyList();
     }
 }
 

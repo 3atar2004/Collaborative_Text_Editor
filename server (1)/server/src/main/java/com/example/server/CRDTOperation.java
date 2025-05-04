@@ -6,6 +6,9 @@ public class CRDTOperation {
     private char value;       // only used for insert
     private String parentId;  // only used for insert
     private String roomId;
+    private long timestamp;  
+    private long sequenceNumber; 
+    
 
     public CRDTOperation() {} // Needed for deserialization
 
@@ -23,4 +26,20 @@ public class CRDTOperation {
     public void setParentId(String parentId) { this.parentId = parentId; }
     public void setroomId(String roomID){this.roomId=roomID;}
     public String getRoomId(){return this.roomId;}
+    //reconnection
+    public long getTimestamp() {
+        return timestamp;
+    }
+    
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+    
+    public long getSequenceNumber() {
+        return sequenceNumber;
+    }
+    
+    public void setSequenceNumber(long sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
 }

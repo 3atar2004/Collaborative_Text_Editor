@@ -2,7 +2,7 @@ package com.example.client;
 
 public class CRDTOperation {
     private String type;      // "insert" or "delete"
-    private String id;
+    private String id;        //node id
     private char value;       // only used for insert
     private String parentId;  // only used for insert
     private String roomId;
