@@ -249,6 +249,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class EditorController {
     @FXML
@@ -312,6 +316,9 @@ public class EditorController {
     private boolean newdoc = false;
     private int lastSentPosition = -1;
     private long lastCursorUpdateTime = 0;
+    //private int lastSentPosition = -1;
+//    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+//    private Runnable pendingUpdate = null;
     private static final long CURSOR_UPDATE_DELAY_MS =100;
 
     // For remote cursors
@@ -322,6 +329,11 @@ public class EditorController {
     };
 
     HttpHelper helper;
+    //private int lastSentPosition = -1;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> pendingUpdate = null;
+    //private int lastSentPosition = -1;  // Store the last sent position
+
 
     @FXML
     public void initialize() {
@@ -337,6 +349,7 @@ public class EditorController {
         cursorWebSocketHandler = new CursorWebSocketHandler();
         cursorWebSocketHandler.setCursorHandler(this::handlecursors);
         helper = new HttpHelper();
+
 
         // Debounce text change listener
         textArea.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -356,11 +369,28 @@ public class EditorController {
         });
 
         // Track local cursor position
+
+
         textArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            int newPosInt = (Integer) newPos;
+            System.out.println("Attempting to send position: " + newPosInt);
 
-            cursorWebSocketHandler.sendCursorPosition(roomCode, UserID, (Integer) newPos, getColorForUser(UserID));
+            // Cancel the previous scheduled task if it exists
+            if (pendingUpdate != null && !pendingUpdate.isDone()) {
+                pendingUpdate.cancel(false);  // Cancel the task if it hasn't been executed yet
+            }
+
+            // Schedule a new update after a short delay
+            pendingUpdate = scheduler.schedule(() -> {
+                if (newPosInt != lastSentPosition) {
+                    System.out.println("Sending new position: " + newPosInt);
+                    cursorWebSocketHandler.sendCursorPosition(roomCode, UserID, newPosInt, getColorForUser(UserID));
+                    lastSentPosition = newPosInt;
+                } else {
+                    System.out.println("Position unchanged, not sending: " + newPosInt);
+                }
+            }, 200, TimeUnit.MILLISECONDS);  // Adjust the delay time as needed (200ms here)
         });
-
         // Initialize line numbers
         updateLineNumbers();
 
