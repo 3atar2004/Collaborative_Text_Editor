@@ -45,6 +45,39 @@ public class Document {
         // Record the insert for undo functionality
         recordInsert(nodeId, userId);
     }
+    public String getNodeIdAtPosition(int position) {
+        if (rootId == null) return null;
+
+        int[] currentPosition = {0}; // Use an array to allow modification in recursive method
+        String[] nodeIdAtPosition = {null}; // Use an array to store the result
+
+        traverseForPosition(rootId, position, currentPosition, nodeIdAtPosition);
+
+        return nodeIdAtPosition[0];
+    }
+
+    private void traverseForPosition(String nodeId, int targetPosition, int[] currentPosition, String[] nodeIdAtPosition) {
+        if (nodeIdAtPosition[0] != null) return; // Stop if we’ve found the position
+
+        Node node = nodes.get(nodeId);
+        if (node == null) return;
+
+        // Count this node if it’s not deleted
+        if (!node.isDeleted()) {
+            if (currentPosition[0] == targetPosition) {
+                nodeIdAtPosition[0] = node.getId();
+                return;
+            }
+            currentPosition[0]++;
+        }
+
+        // Traverse children
+        List<Node> children = getchildren(nodeId);
+        sortChildren(children);
+        for (Node child : children) {
+            traverseForPosition(child.getId(), targetPosition, currentPosition, nodeIdAtPosition);
+        }
+    }
 
 
 
@@ -179,5 +212,8 @@ public void recordInsert(String id, String userId) {
     // clear redo stack
     redoStacks.computeIfAbsent(userId, k -> new LinkedList<>()).clear();
 }
+
+
+
 
 }

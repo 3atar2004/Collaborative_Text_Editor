@@ -6,7 +6,7 @@ public class main {
         String roomCode = "A1B2C3-e";
 
         client.connectToWebSocket();
-        client.subscribeToRoom(roomCode);
+        //client.subscribeToRoom(roomCode);
 
         // Simulate insert operation
         client.sendInsert(roomCode, "User1:123456789", 'H', "root");

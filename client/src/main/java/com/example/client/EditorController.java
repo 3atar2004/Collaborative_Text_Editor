@@ -1,292 +1,244 @@
-
 package com.example.client;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.input.*;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-
-import java.io.IOException;
-
-/*public class EditorController implements Initializable {
-    // FXML injections
-    @FXML private Label titleLabel;
-    @FXML private TextArea textArea;
-    @FXML private VBox lineNumbers;
-    @FXML private ScrollPane lineScrollPane;
-    @FXML private ScrollPane textScrollPane;
-    @FXML private HBox textEditorContainer;
-    @FXML private TextField editorCodeField;
-    @FXML private TextField viewerCodeField;
-    @FXML private Button copyEditorButton;
-    @FXML private Button copyViewerButton;
-    @FXML private Button undoButton;
-    @FXML private Button redoButton;
-    @FXML private ListView<String> userList;
-    @FXML private Button endButton;
-
-    //private UndoManager undoManager;
-    private String username;
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        //undoManager = new UndoManager();
-        setupTextArea();
-        setupScrollSync();
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-        titleLabel.setText("Collaborative Editor - " + username);
-        editorCodeField.setText("ABC123");
-        viewerCodeField.setText("XYZ789");
-        userList.getItems().add(username);
-
-        setupUndoRedo();
-        setupCopyButtons();
-        setupEndButton();
-    }
-
-    private void setupTextArea() {
-        textArea.textProperty().addListener((obs, oldText, newText) -> {
-            updateLineNumbers();
-            if (!newText.equals(oldText)) {
-                //undoManager.addEdit(oldText, newText);
-            }
-        });
-
-        textArea.caretPositionProperty().addListener((obs, oldVal, newVal) -> {
-            updateLineNumbers();
-        });
-    }
-
-    private void setupScrollSync() {
-        textScrollPane.vvalueProperty().addListener((obs, oldVal, newVal) -> {
-            lineScrollPane.setVvalue(newVal.doubleValue());
-        });
-    }
-
-    private void updateLineNumbers() {
-        String[] lines = textArea.getText().split("\n", -1);
-        lineNumbers.getChildren().clear();
-        for (int i = 0; i < lines.length; i++) {
-            Label lineLabel = new Label(String.format("%d", i + 1));
-            lineLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b8ca5;");
-            lineLabel.setMinWidth(30);
-            lineLabel.setAlignment(Pos.TOP_RIGHT);
-            lineNumbers.getChildren().add(lineLabel);
-        }
-    }
-
-    private void setupUndoRedo() {
-////        undoButton.setOnAction(e -> undoManager.undo(textArea));
-////        redoButton.setOnAction(e -> undoManager.redo(textArea));
-//
-//        textArea.getScene().getAccelerators().put(
-//                new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN),
-//                //() -> undoManager.undo(textArea)
-//        );
-//        textArea.getScene().getAccelerators().put(
-//                new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN),
-//                //() -> undoManager.redo(textArea)
-//        );
-    }
-
-    private void setupCopyButtons() {
-        setupCopyButton(copyEditorButton, editorCodeField.getText());
-        setupCopyButton(copyViewerButton, viewerCodeField.getText());
-    }
-
-    private void setupCopyButton(Button button, String text) {
-        Tooltip copiedTooltip = new Tooltip("Copied!");
-        copiedTooltip.setStyle("""
-            -fx-background-color: #4682b6;
-            -fx-text-fill: white;
-            -fx-font-size: 12px;
-            -fx-padding: 4;
-        """);
-
-        button.setOnAction(e -> {
-            ClipboardContent content = new ClipboardContent();
-            content.putString(text);
-            Clipboard.getSystemClipboard().setContent(content);
-
-            Point2D p = button.localToScreen(button.getWidth()/2, button.getHeight());
-            copiedTooltip.show(button, p.getX(), p.getY());
-
-//            new PauseTransition(Duration.seconds(1))
-//                    .setOnFinished(event -> copiedTooltip.hide())
-//                    .play();
-        });
-    }
-
-    private void setupEndButton() {
-        endButton.setOnAction(e -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                        "/com/collaborative/editor/view/Welcome.fxml"));
-                Stage stage = (Stage) endButton.getScene().getWindow();
-                stage.setScene(new Scene(loader.load(), 800, 600));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-    }}
-
-
-
-package com.example.client;
-
-import javafx.application.Platform;
-import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;*/
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.springframework.core.io.FileSystemResource;
+import javafx.geometry.Pos;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import org.w3c.dom.events.EventTarget;
+
+import javax.print.Doc;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class EditorController {
-    private String roomCode;
-    private String username;
-    private final String userId = "User" + System.currentTimeMillis();
-    private final DocumentWebsockethandler webSocketHandler;
-    private final Document document;
-    private Stage stage;
+    @FXML
+    public Label edit_label;
+    public Label view_label;
+    @FXML
+    private Label titleLabel;
 
-    // FXML fields
-    @FXML private Label titleLabel;
-    @FXML private TextField editorCodeField;
-    @FXML private TextField viewerCodeField;
-    @FXML private Button copyEditorButton;
-    @FXML private Button copyViewerButton;
-    @FXML private Button undoButton;
-    @FXML private Button redoButton;
-    @FXML private Button endButton;
-    @FXML private ListView<String> userList;
-    @FXML private VBox lineNumbers;
-    @FXML private ScrollPane lineScrollPane;
-    @FXML private ScrollPane textScrollPane;
-    @FXML private TextArea textArea;
+    @FXML
+    private TextField editorCodeField;
 
-    public EditorController() {
-        // Default constructor needed for FXML loading
-        this.roomCode = "ROOM" + System.currentTimeMillis(); // Default room code for Start Editing
-        this.webSocketHandler = new DocumentWebsockethandler();
-        this.document = new Document();
-    }
+    @FXML
+    private TextField viewerCodeField;
 
-    public EditorController(String roomCode) {
-        this.roomCode = roomCode;
-        this.webSocketHandler = new DocumentWebsockethandler();
-        this.document = new Document();
-    }
+    @FXML
+    private Button copyEditorButton;
 
-    public void setStage(Stage stage) {
-        this.stage = stage;
-    }
+    @FXML
+    private Button copyViewerButton;
 
-    public void initializeWithUsername(String username) {
-        this.username = username;
-        initialize();
-    }
+    @FXML
+    private Button undoButton;
+
+    @FXML
+    private Button redoButton;
+
+    @FXML
+    private Button endButton;
+
+    @FXML
+    private ListView<String> userList;
+
+    @FXML
+    private TextArea textArea;
+
+    @FXML
+    private VBox lineNumbers;
+
+    @FXML
+    private ScrollPane lineScrollPane;
+
+    @FXML
+    private ScrollPane textScrollPane;
+
+    private List<String> user_list = new ArrayList<>();
+    private DocumentWebsockethandler websockethandler;
+    private Userlistwebsockethandler userlistwebsockethandler;
+    private Document document;
+    private String UserID;
+    private String roomCode; // Mock room code
+    private Stack<String> undoStack = new Stack<>();
+    private Stack<String> redoStack = new Stack<>();
+    private boolean isProcessingChange = false; // Debounce flag
+    private Set<String> sentOperationIds = new HashSet<>(); // Track sent operations
+    private Set<String> deletedids = new HashSet<>();
+    private boolean Remoteupdate = false;
+
+    HttpHelper helper;
+
 
     @FXML
     public void initialize() {
-        titleLabel.setText("Room: " + roomCode);
-        editorCodeField.setText(roomCode + "-editor");
-        viewerCodeField.setText(roomCode + "-viewer");
+        titleLabel.setText("Text Editor");
+        document = new Document();
+        websockethandler = new DocumentWebsockethandler();
+        websockethandler.setMessageHandler(this::handleServerOperation);
+        userlistwebsockethandler= new Userlistwebsockethandler();
+        userlistwebsockethandler.setUsershandler(this::handleuserlist);
+        helper = new HttpHelper();
 
-        // Initialize user list with the username
-        userList.getItems().add(username != null ? username : userId);
-
-        // Sync line numbers with text area
-        textArea.textProperty().addListener((obs, oldText, newText) -> {
-            handleTextChange(oldText, newText);
-            updateLineNumbers();
-        });
-
-        // Sync scroll positions
-        textScrollPane.vvalueProperty().addListener((obs, oldVal, newVal) -> {
-            lineScrollPane.setVvalue(newVal.doubleValue());
-        });
-
-        // Connect to WebSocket
-        connect();
-
-        // Initial update
-        updateTextArea();
-        updateLineNumbers();
-    }
-
-    public boolean connect() {
-        boolean connected = webSocketHandler.connectToWebSocket();
-        if (connected) {
-            webSocketHandler.subscribeToRoom(roomCode);
-            webSocketHandler.setMessageHandler(this::handleWebSocketMessage);
-        }
-        return connected;
-    }
-
-    private void handleWebSocketMessage(CRDTOperation op) {
-        Platform.runLater(() -> {
-            if ("insert".equals(op.getType())) {
-                document.remoteInsert(op.getId(), op.getValue(), op.getParentId());
-            } else if ("delete".equals(op.getType())) {
-                document.remoteDelete(op.getId());
+        // Debounce text change listener
+        textArea.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (Remoteupdate) {
+                return; // it just skips.
             }
-            updateTextArea();
-            updateLineNumbers();
+            if (!isProcessingChange) {
+                isProcessingChange = true;
+                handleLocalTextChange(oldValue, newValue);
+                isProcessingChange = false;
+            }
         });
+
+
+        // Sync scrolling of line numbers with text area
+        textScrollPane.vvalueProperty().addListener((obs, oldValue, newValue) -> {
+            lineScrollPane.setVvalue(newValue.doubleValue());
+        });
+
+        // Initialize line numbers
+        updateLineNumbers();
+
+        // Initialize buttons and fields
+        editorCodeField.setText(generateEditorCode());
+        viewerCodeField.setText(generateViewerCode());
+        updateUndoRedoButtons();
     }
 
-    private void handleTextChange(String oldText, String newText) {
-        if (newText.length() > oldText.length()) {
-            char insertedChar = newText.charAt(newText.length() - 1);
-            String parentId = newText.length() == 1 ? null : document.getRootId();
-            localInsert(insertedChar, parentId);
-        } else if (newText.length() < oldText.length()) {
-            localDelete();
+    public void initializeWithUsername(String username, String editor, String viewer, boolean edit) {
+        if (username != null && !username.trim().isEmpty()) {
+            userList.getItems().add(username);
+        }
+        this.viewerCodeField.setText(viewer);
+        this.editorCodeField.setText(editor);
+        user_list.add(username);
+
+        if (edit == false) {
+            editorCodeField.setVisible(false);
+            viewerCodeField.setVisible(false);
+            textArea.setEditable(false);
+            copyEditorButton.setVisible(false);
+            copyViewerButton.setVisible(false);
+            edit_label.setVisible(false);
+            view_label.setVisible(false);
+        }
+        this.UserID = username;
+        roomCode = editor;
+        if (roomCode == null || roomCode.trim().isEmpty()) {
+            showAlert("Invalid Room Code", "Room code is not set.");
+            return;
+        }
+        if (websockethandler.connectToWebSocket()) {
+
+            websockethandler.subscribeToRoom(roomCode);
+        } else {
+            showAlert("Connection Failed", "Couldn't connect to WebSocket server");
+        }
+        if (userlistwebsockethandler.connectToWebSocket()) {
+
+            userlistwebsockethandler.subscribeToRoom(roomCode);
+        } else {
+            showAlert("Connection Failed", "Couldn't connect to WebSocket server");
+        }
+        userlistwebsockethandler.join(roomCode,username);
+
+        Document document1 = helper.getdocuments(roomCode);
+        if (document1 != null) {
+            textArea.setText(document1.getText());
         }
     }
 
-    public void localInsert(char value, String parentId) {
-        String nodeId = userId + ":" + System.currentTimeMillis();
-        document.insert(value, parentId, userId);
-        CRDTOperation op = new CRDTOperation();
-        op.setType("insert");
-        op.setId(nodeId);
-        op.setValue(value);
-        op.setParentId(parentId);
-        op.setroomId(roomCode);
-        webSocketHandler.sendInsert(roomCode, nodeId, value, parentId);
-    }
-
-    public void localDelete() {
-        document.undo(userId);
-        updateTextArea();
+    @FXML
+    private void handleImport(ActionEvent event) throws IOException {
+//        textArea.setText("Imported text content...");
+//        undoStack.push("");
+//        redoStack.clear();
+//        updateUndoRedoButtons();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File to import");
+        Window window = ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        File selectedfile = fileChooser.showOpenDialog(window);
+        if (selectedfile != null) {
+            String filepath = selectedfile.getAbsolutePath();
+            String text = Files.readString(Paths.get(filepath));
+            textArea.setText(text);
+        } else {
+            System.out.println("no file is selected! ");
+        }
     }
 
     @FXML
-    public void undo() {
-        document.undo(userId);
-        updateTextArea();
-        updateLineNumbers();
+    private void handleExport(ActionEvent event) throws IOException {
+        String content = textArea.getText();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save as ....");
+        Window window = ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        File fileselected = fileChooser.showSaveDialog(window);
+        if (fileselected != null) {
+            String filepath = fileselected.getAbsolutePath();
+            ExportFile(content, filepath);
+            showSuccess("File Saved","File Exported Successfully");
+
+        }
+    }
+
+    public void ExportFile(String content, String filePath) throws IOException {
+        // Convert to Path to handle extensions and directories cleanly
+        Path path = Paths.get(filePath);
+
+        // Add .txt extension if missing
+        if (!filePath.toLowerCase().endsWith(".txt")) {
+            path = path.resolveSibling(path.getFileName() + ".txt");
+        }
+
+        File file = path.toFile();
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(content);
+        }
+
+    }
+
+    private void  handleuserlist(List<String>usernames)
+    {
+        System.out.println("recieved userlist");
+        for(String user: usernames)
+        {
+            System.out.println(user);
+        }
+        //userList.getItems().removeLast();
+        Platform.runLater(() -> {
+//            for (String username : usernames ) {
+////                if(username.equals(username)&& user_list.contains(username))
+////                {
+////                    continue;
+////                }
+//
+//                userList.getItems().add(username);
+//            }
+            userList.getItems().setAll(usernames);
+        });
     }
 
     @FXML
-    public void redo() {
-        document.redo(userId);
-        updateTextArea();
-        updateLineNumbers();
-    }
-
-    @FXML
-    public void copyEditorCode() {
+    private void copyEditorCode(ActionEvent event) {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(editorCodeField.getText());
@@ -294,7 +246,7 @@ public class EditorController {
     }
 
     @FXML
-    public void copyViewerCode() {
+    private void copyViewerCode(ActionEvent event) {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         ClipboardContent content = new ClipboardContent();
         content.putString(viewerCodeField.getText());
@@ -302,52 +254,212 @@ public class EditorController {
     }
 
     @FXML
-    public void handleImport() {
-        System.out.println("Import functionality not implemented.");
+    private void undo(ActionEvent event) {
+        document.undo(UserID);
+        textArea.setText(document.getText());
+        updateUndoRedoButtons();
     }
 
     @FXML
-    public void handleExport() {
-        System.out.println("Export functionality not implemented.");
+    private void redo(ActionEvent event) {
+        document.redo(UserID);
+        textArea.setText(document.getText());
+        updateUndoRedoButtons();
     }
 
     @FXML
-    public void endSession() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/Welcome.fxml"));
-            Parent root = loader.load();
+    private void endSession(ActionEvent event) {
+        textArea.clear();
+        userList.getItems().clear();
+        userlistwebsockethandler.leave(roomCode,UserID);
+        //userlistwebsockethandler.disconnect();
+        websockethandler.disconnect();
+        updateUndoRedoButtons();
+    }
 
-            WelcomeController controller = loader.getController();
-            // No need to set stage since we're reusing the existing one
+    private void handleLocalTextChange(String oldValue, String newValue) {
+        if (oldValue == null || newValue == null || oldValue.equals(newValue)) return;
 
-            Stage stage = (Stage) textArea.getScene().getWindow();
-            stage.setScene(new Scene(root, 800, 600));
-            stage.setTitle("Collaborative Text Editor");
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        int cursorPosition = textArea.getCaretPosition();
+        System.out.println("oldValue: '" + oldValue + "', newValue: '" + newValue + "', cursorPosition: " + cursorPosition);
+
+        if (newValue.length() > oldValue.length()) { // Character inserted
+            if (cursorPosition >= 0 && cursorPosition <= newValue.length()) {
+                char insertedChar = 0;
+                int insertIndex = cursorPosition > 0 ? cursorPosition - 1 : 0; // get position of the inserted character
+                if (newValue.length() == oldValue.length() + 1) {
+                    // Single character insertion
+                    if (insertIndex < oldValue.length() && oldValue.charAt(insertIndex) == newValue.charAt(insertIndex)) {
+                        insertedChar = cursorPosition < newValue.length() ? newValue.charAt(cursorPosition) : newValue.charAt(newValue.length() - 1);
+                    } else {
+                        insertedChar = newValue.charAt(insertIndex);
+                    }
+                } else {
+                    // here we will handle lama text yeb2a pasted. // multiple character insertion at once.
+                    // Multiple character insertion = paste
+                    int insertedLength = newValue.length() - oldValue.length();
+                    int startIndex = insertIndex;
+
+// Extract inserted substring
+                    String insertedText = newValue.substring(startIndex, startIndex + insertedLength);
+                    System.out.println("Pasted text: '" + insertedText + "'");
+
+// Get initial parentId (before the paste position)
+                    String parentId = null;
+                    if (startIndex > 0) {
+                        parentId = document.getNodeIdAtPosition(startIndex - 1);
+                    }
+                    if (parentId == null) {
+                        parentId = document.getLastNodeId();
+                    }
+
+                    for (int i = 0; i < insertedText.length(); i++) {
+                        char c = insertedText.charAt(i);
+                        String nodeId = document.insert(c, parentId, UserID);
+                        System.out.println("Inserted char from paste: " + c + ", nodeId: " + nodeId + ", parentId: " + parentId);
+
+                        if (nodeId != null && sentOperationIds.add(nodeId)) {
+                            websockethandler.sendInsert(roomCode, nodeId, c, parentId);
+                        }
+
+                        // Set parentId for the next character to be this node
+                        parentId = nodeId;
+                    }
+                }
+
+                // Determine parentId
+                String parentId = null;
+                if (cursorPosition > 0) {
+                    parentId = document.getNodeIdAtPosition(cursorPosition - 1);
+                }
+                if (parentId == null) {
+                    parentId = document.getLastNodeId();
+                }
+
+                System.out.println("Inserting char: " + insertedChar + ", parentId: " + parentId);
+                String nodeId = document.insert(insertedChar, parentId, UserID); // Insert in the local document
+                // String nodeId = document.getNodes().keySet().stream().max(String::compareTo).orElse(null);
+                System.out.println("Document text after insert: " + document.getText());
+                //textArea.positionCaret(insertIndex)
+                if (nodeId != null && sentOperationIds.add(nodeId)) {
+                    System.out.println("Sent insert op: " + insertedChar + ", nodeId: " + nodeId);
+                    websockethandler.sendInsert(roomCode, nodeId, insertedChar, parentId);
+                } else {
+                    System.out.println("Failed to get nodeId or operation already sent for insertion: " + nodeId);
+                }
+            } else {
+                System.out.println("Invalid cursor position for insertion: " + cursorPosition);
+            }
+        } else if (newValue.length() < oldValue.length()) { // Character deleted
+            // Adjust cursor position and check if there's text to delete
+            int deletedPosition = cursorPosition - 1;
+
+            if (deletedPosition < 0) {
+                System.out.println("Nothing to delete (cursor at start)");
+                return;
+            }
+
+            System.out.println("Attempting to delete at position: " + deletedPosition);
+
+            // Find the correct nodeId corresponding to the deleted character
+            String nodeId = document.getNodeIdAtPosition(deletedPosition);
+
+            if (nodeId != null) {
+                //sentOperationIds.remove(nodeId);
+                // Check if operation for this nodeId has already been sent
+
+                if (deletedids.add(nodeId)) {
+                    System.out.println("Sent delete op for nodeId: " + nodeId);
+                    document.delete(nodeId);  // Actually delete the node in the document
+                    websockethandler.sendDelete(roomCode, nodeId);
+
+                    // After deletion, update the document text
+                    String updatedText = document.getText();
+                    System.out.println("Updated document text after delete: '" + updatedText + "'");
+
+                    // Update the TextArea with the updated text after deletion
+                    textArea.setText(updatedText);
+                } else {
+                    System.out.println("Operation already sent for nodeId: " + nodeId);
+                }
+            } else {
+                System.out.println("No nodeId found at position: " + deletedPosition);
+            }
         }
+
+
     }
 
-    public void updateTextArea() {
-        String text = document.getText();
-        textArea.setText(text);
+
+    private void handleServerOperation(CRDTOperation op) {
+        Platform.runLater(() -> {
+            // Skip if operation ID was sent by this client
+            if (sentOperationIds.contains(op)) {
+                System.out.println("Ignoring sent operation: " + op.getType() + ", id: " + op.getId());
+                return;
+            }
+            int old = textArea.getCaretPosition();
+            System.out.println("Processing remote op: " + op.getType() + ", id: " + op.getId() + ", value: " + op.getValue());
+            if ("insert".equals(op.getType())) {
+                document.remoteInsert(op.getId(), op.getValue(), op.getParentId());
+            } else if ("delete".equals(op.getType())) {
+                System.out.println("applying remote delete for id: " + op.getId());
+                document.remoteDelete(op.getId());
+                if (document.getNodes().get(op.getId()) == null) {
+                    System.out.println("node not found for remote delete: " + op.getId());
+                }
+            }
+            String documentText = document.getText();
+            System.out.println("Remote op applied, document text: " + documentText);
+            Remoteupdate = true;
+            textArea.setText(documentText);
+            textArea.positionCaret(Math.min(old, documentText.length()));
+            Remoteupdate = false;
+            updateLineNumbers();
+        });
     }
 
     private void updateLineNumbers() {
         lineNumbers.getChildren().clear();
-        int lineCount = textArea.getText().split("\n", -1).length;
+        int lineCount = textArea.getText().split("\n").length;
         for (int i = 1; i <= lineCount; i++) {
             Label lineLabel = new Label(String.valueOf(i));
-            lineLabel.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 14px; -fx-text-fill: #666;");
+            lineLabel.getStyleClass().add("line-number-label");
             lineNumbers.getChildren().add(lineLabel);
         }
     }
 
-    public Document getDocument() {
-        return document;
+    private void updateUndoRedoButtons() {
+        undoButton.setDisable(false);
+        redoButton.setDisable(false);
     }
 
-    public String getRoomCode() {
-        return roomCode;
+    private String generateEditorCode() {
+        return "EDT-" + System.currentTimeMillis();
+    }
+
+    private String generateViewerCode() {
+        return "VWR-" + System.currentTimeMillis();
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showSuccess(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);  // Green "info" style
+        alert.setTitle(title);
+        alert.setHeaderText(null);  // No header
+        alert.setContentText(message);
+
+        // Optional: Add a checkmark icon (requires custom CSS)
+        alert.getDialogPane().getStylesheets().add("path/to/your/styles.css");
+        alert.showAndWait();
+
     }
 }

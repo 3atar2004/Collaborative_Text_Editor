@@ -21,13 +21,13 @@
             </HBox>
 
             <HBox spacing="5" alignment="CENTER_LEFT">
-                <Label text="Editor Code:" styleClass="label"/>
+                <Label fx:id="edit_label" text="Editor Code:" styleClass="label"/>
                 <TextField fx:id="editorCodeField" styleClass="text-field" prefWidth="120" editable="false"/>
                 <Button fx:id="copyEditorButton" text="Copy" styleClass="button" onAction="#copyEditorCode"/>
             </HBox>
 
             <HBox spacing="5" alignment="CENTER_LEFT">
-                <Label text="Viewer Code:" styleClass="label"/>
+                <Label fx:id="view_label" text="Viewer Code:" styleClass="label"/>
                 <TextField fx:id="viewerCodeField" styleClass="text-field" prefWidth="120" editable="false"/>
                 <Button fx:id="copyViewerButton" text="Copy" styleClass="button" onAction="#copyViewerCode"/>
             </HBox>

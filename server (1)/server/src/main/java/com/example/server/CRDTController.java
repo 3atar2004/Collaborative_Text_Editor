@@ -1,4 +1,5 @@
-package com.example.server;
+
+        package com.example.server;
 
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -8,8 +9,9 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class CRDTController {
     public DocumentService service;
-    public CRDTController(DocumentService Service){
-        this.service=Service;
+
+    public CRDTController(DocumentService Service) {
+        this.service = Service;
     }
 
     @MessageMapping("/room/{roomId}")
@@ -44,7 +46,11 @@ public class CRDTController {
             default:
                 System.out.println("Unknown operation type: " + op.getType());
         }
+        System.out.println(doc.getText());
 
-        // Step 5: Return the op to broadcast to all users in the room
-        return op;}
+        //Step 5: Return the op to broadcast to all users in the room
+        return op;
+    }
 }
+
+

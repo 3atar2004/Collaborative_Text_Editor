@@ -1,5 +1,4 @@
-        package com.example.client;
-
+package com.example.client;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.*;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -16,10 +15,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-public class DocumentWebsockethandler {
+public class Userlistwebsockethandler {
     private volatile StompSession stompSession;
-    private Consumer<CRDTOperation> messageHandler;
+    private Consumer<List<String>> usershandler;
 
     public boolean connectToWebSocket() {
         if (stompSession != null && stompSession.isConnected()) {
@@ -65,18 +63,18 @@ public class DocumentWebsockethandler {
             return;
         }
 
-        String topic = "/topic/room/" + roomCode;
+        String topic = "/topic/users/" + roomCode;
         stompSession.subscribe(topic, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
-                return CRDTOperation.class;
+                return List.class;
             }
 
             @Override
             public void handleFrame(StompHeaders headers, Object payload) {
-                CRDTOperation op = (CRDTOperation) payload;
-                if (messageHandler != null) {
-                    messageHandler.accept(op);
+                List<String> users = (List<String>) payload;
+                if (usershandler != null) {
+                    usershandler.accept(users);
                 }
             }
         });
@@ -89,43 +87,31 @@ public class DocumentWebsockethandler {
             System.out.println("Disconnected from WebSocket server.");
         }
     }
-    public void sendInsert(String roomCode, String id, char value, String parentId) {
+    public void join(String roomCode,String userid)
+    {
         if (stompSession == null || !stompSession.isConnected()) {
             System.err.println("Not connected. Please ensure connectToWebSocket() succeeds.");
             return;
         }
 
-        CRDTOperation op = new CRDTOperation();
-        op.setType("insert");
-        op.setId(id);
-        op.setValue(value);
-        op.setParentId(parentId);
-        op.setroomId(roomCode);
-
-        String destination = "/app/room/" + roomCode;
-        stompSession.send(destination, op);
-        System.out.println("Sent insert op: " + value);
+        String destination = "/app/users/" + roomCode;
+        stompSession.send(destination, userid);
+        //System.out.println("Sent insert op: " + value);
     }
-    public void sendDelete(String roomCode,String id)
+    public void leave(String roomCode,String username)
     {
-        if(stompSession==null||!stompSession.isConnected())
-        {
-            System.err.println("Not connected to websocket");
+        if (stompSession == null || !stompSession.isConnected()) {
+            System.err.println("Not connected. Please ensure connectToWebSocket() succeeds.");
             return;
         }
-        CRDTOperation op = new CRDTOperation();
-        op.setType("delete");
-        op.setId(id);
-        op.setroomId(roomCode);
-        String destination = "/app/room/"+roomCode;
-        stompSession.send(destination,op);
-        System.out.println("sent delete op for id: "+id);
+
+        String destination = "/app/users/remove/" + roomCode;
+        stompSession.send(destination, username);
     }
 
-    public void setMessageHandler(Consumer<CRDTOperation> handler) {
-        this.messageHandler = handler;
+    public void setUsershandler(Consumer<List<String>> handler) {
+        this.usershandler = handler;
     }
 }
-
 
 
