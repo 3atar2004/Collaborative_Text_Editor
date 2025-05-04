@@ -56,7 +56,7 @@ private void handleStartEditing() throws IOException {
             String viewer=sessionCodes.get("viewerCode");
             EditorController controller = loader.getController();
             System.out.println(editor+ " "+viewer);
-            controller.initializeWithUsername(username,editor,viewer,SERVER_URL); // Pass the username
+            controller.initializeWithUsername(username,editor,viewer,SERVER_URL);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Collaborative Editor - " + username);

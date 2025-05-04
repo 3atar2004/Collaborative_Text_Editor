@@ -37,5 +37,17 @@ public class HttpHelper {
         }
         return sessionCodes;
     }
+    public static Document getDocumentFromCode(String code) {
+        String url = baseUrl + "/getdoc";
+        Document document = null;
+        try{
+            document=restTemplate.postForObject(url,code,Document.class);
+            System.out.println("Document fetched successfully\n");
+        }catch (Exception e){
+            System.out.println("Failed to fetch document with error " + e.getMessage());
+            System.out.println("Exiting..");
+        }
+        return document;
+    }
 
 }

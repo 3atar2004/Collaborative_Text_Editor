@@ -1,4 +1,5 @@
 package com.example.server;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,5 +22,9 @@ public class DocumentRestController {
         String code = params.split(",")[0];
         String username = params.split(",")[1];
         return documentService.joinSession(code,username);
+    }
+    @GetMapping("/getdoc")
+    public Document get(@RequestBody String code) {
+        return documentService.getDocumentFromCode(code);
     }
 }
