@@ -1,8 +1,14 @@
 package com.example.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.converter.cbor.MappingJackson2CborHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,54 +49,91 @@ public class HttpHelper {
         }
         return sessionCodes;
     }
-    public  Document getDocumentFromCode(String code) {
-        String url = baseUrl + "/getdoc";
-        Document document = null;
-        try{
-            document=restTemplate.postForObject(url,code,Document.class);
-            System.out.println("Document fetched successfully\n");
-        }catch (Exception e){
-            System.out.println("Failed to fetch document with error " + e.getMessage());
-            System.out.println("Exiting..");
-        }
-        return document;
-}
-    public Document getdocuments(String code) {
-        String url = baseUrl + "/document/" + code;
-        try {
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            if (response == null) {
-                System.out.println("No document found for room code: " + code);
-                System.out.println("Exiting..");
-                System.exit(0);
-            }
-
-            List<Map<String, Object>> nodes = (List<Map<String, Object>>) response.get("nodes");
-            if (nodes == null) {
-               System.out.println("Invalid document data for room code: " + code);
+//    public  Document getDocumentFromCode(String code) {
+//        String url = baseUrl + "/getdoc/"+code;
+//        Document document = null;
+//        String text = "";
+//        try {
+//            text = restTemplate.postForObject(url,null,String.class);
+//            System.out.println(text);
+//            //document.buildFromString(text);
+//
+//            System.out.println("Document fetched successfully\n");
+//        } catch (Exception e) {
+//            System.out.println("Failed to fetch document with error " + e.getMessage());
+//            System.out.println("Exiting..");
+//        }
+//        return document;
+//    }
+//}
+//    public Document getdocuments(String code) {
+//        String url = baseUrl + "/document/" + code;
+//        try {
+//            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+//            if (response == null) {
+//                System.out.println("No document found for room code: " + code);
 //                System.out.println("Exiting..");
 //                System.exit(0);
-                return null;
-            }
+//            }
+//
+//            List<Map<String, Object>> nodes = (List<Map<String, Object>>) response.get("nodes");
+//            if (nodes == null) {
+//               System.out.println("Invalid document data for room code: " + code);
+////                System.out.println("Exiting..");
+////                System.exit(0);
+//                return null;
+//            }
+//
+//            Document document = new Document();
+//            for (Map<String, Object> node : nodes) {
+//                String id = (String) node.get("id");
+//                String value = (String) node.get("value");
+//                String parentId = (String) node.get("parentId");
+//                if (value != null && value.length() == 1) {
+//                    document.remoteInsert(id, value.charAt(0), parentId); // Assuming remoteInsert
+//                }
+//            }
+//
+//            System.out.println("Document retrieved successfully for room code: " + code);
+//            return document;
+//        } catch (Exception e) {
+//            System.out.println("Failed to retrieve document for room code " + code + " with error: " + e.getMessage());
+//            System.out.println("Exiting..");
+//            System.exit(0);
+//            return null; // Unreachable
+//        }
+//    }
 
-            Document document = new Document();
-            for (Map<String, Object> node : nodes) {
-                String id = (String) node.get("id");
-                String value = (String) node.get("value");
-                String parentId = (String) node.get("parentId");
-                if (value != null && value.length() == 1) {
-                    document.remoteInsert(id, value.charAt(0), parentId); // Assuming remoteInsert
-                }
-            }
+public  Document requestDocument(String roomCode) throws IOException, InterruptedException {
+    String BASE_URL = baseUrl + "/document/";
+    HttpClient client = HttpClient.newHttpClient();
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + roomCode))
+            .GET()
+            .build();
 
-            System.out.println("Document retrieved successfully for room code: " + code);
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    // Deserialize JSON to Document using Jackson or Gson
+    ObjectMapper mapper = new ObjectMapper();
+
+
+    Document d=mapper.readValue(response.body(), Document.class);
+    System.out.println("Document fetched successfully gowa requestdocument\n");
+    System.out.println("data:"+d.getText()+"/");
+    return d;
+}
+    public  Document getDocumentFromCode(String code) {
+        String url = baseUrl + "/getdoc?code={code}";
+        try {
+            Document document = restTemplate.getForObject(url, Document.class, code);
+            System.out.println("Document fetched successfully\n");
             return document;
         } catch (Exception e) {
-            System.out.println("Failed to retrieve document for room code " + code + " with error: " + e.getMessage());
+            System.out.println("Failed to fetch document with error " + e.getMessage());
             System.out.println("Exiting..");
-            System.exit(0);
-            return null; // Unreachable
-        }
-    }
-
+            return null;
 }
+    }
+}
+

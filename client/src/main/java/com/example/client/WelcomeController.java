@@ -35,7 +35,7 @@ public class WelcomeController {
 //        }
 //    }
 @FXML
-private void handleStartEditing() throws IOException {
+private void handleStartEditing() throws IOException, InterruptedException {
     String username = usernameField.getText().trim();
     if (!username.isEmpty()) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/editor.fxml"));
@@ -58,7 +58,7 @@ private void handleStartEditing() throws IOException {
     }
 
     @FXML
-    private void handleJoinSessionSubmit() throws IOException {
+    private void handleJoinSessionSubmit() throws IOException, InterruptedException {
         String username = usernameField.getText().trim();
         String sessionCode = sessionField.getText().trim();
 

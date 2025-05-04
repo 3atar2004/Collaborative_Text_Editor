@@ -8,9 +8,9 @@ module com.example.client {
     requires spring.websocket;
     requires spring.core;
     requires spring.web;
+    requires java.net.http;
+    requires com.fasterxml.jackson.databind;
     requires java.desktop;
-    requires com.fasterxml.jackson.annotation;
-
-    opens com.example.client to javafx.fxml;
+    opens com.example.client to com.fasterxml.jackson.databind, javafx.fxml;
     exports com.example.client;
 }

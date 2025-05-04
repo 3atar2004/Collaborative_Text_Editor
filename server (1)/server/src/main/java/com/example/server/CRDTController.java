@@ -42,7 +42,6 @@ public class CRDTController {
             case "delete":
                 doc.remoteDelete(op.getId());
                 break;
-            // Optional: handle "cursor", "undo", "redo", etc.
             default:
                 System.out.println("Unknown operation type: " + op.getType());
         }

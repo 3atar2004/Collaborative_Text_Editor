@@ -3,12 +3,20 @@ package com.example.client;
 
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.Nulls;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Document {
+    @JsonProperty("nodes")
     private final Map<String, Node> nodes = new HashMap<>();
+    @JsonProperty("rootId")
     private String rootId= null;
+    @JsonProperty("undoStacks")
+    private Map<String, Deque<String>> undoStacks = new HashMap<>();
+
+    @JsonProperty("redoStacks")
+    private Map<String, Deque<String>> redoStacks = new HashMap<>();
 //    public Document(){}
 //    public Document() {
 //        this.nodes = new HashMap<>();
@@ -152,7 +160,12 @@ public class Document {
             return aParts[0].compareTo(bParts[0]);
         });
     }
-
+    public void buildFromString(String text, String userId) {
+        String parentId = null;
+        for (char c : text.toCharArray()) {
+            parentId = insert(c, parentId, userId);
+}
+    }
     private void traverse(String nodeId, StringBuilder builder) {
         Node node = nodes.get(nodeId);
         if (node == null) {
@@ -200,8 +213,7 @@ public class Document {
         });
     }
 
-    private Map<String, Deque<String>> undoStacks = new HashMap<>();
-    private Map<String, Deque<String>> redoStacks = new HashMap<>();
+
 
     public void undo(String userId) {
         if (!undoStacks.containsKey(userId)) return;
