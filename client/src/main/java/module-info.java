@@ -11,6 +11,7 @@ module com.example.client {
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
     requires java.desktop;
+    requires org.apache.logging.log4j;
     opens com.example.client to com.fasterxml.jackson.databind, javafx.fxml;
     exports com.example.client;
 }
