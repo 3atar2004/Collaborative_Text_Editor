@@ -70,11 +70,8 @@ private void handleStartEditing() throws IOException, InterruptedException {
             String viewer=sessioncodes.get("viewerCode");
             System.out.println(editor+","+viewer);
             EditorController controller = loader.getController();
-            boolean edit=true;
-            if(sessionCode.contains("-v"))
-            {
-                edit=false;
-            }
+            boolean edit= !sessionCode.contains("-v");
+            //System.out.println(sessionCode);
             controller.initializeWithUsername(username,editor,viewer,edit); // Pass the username
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root, 800, 600));

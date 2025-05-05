@@ -14,6 +14,8 @@ public class DocumentService {
     private final Map<String, Document> documents = new ConcurrentHashMap<>();
     private final Map<String, String> viewerToEditorMap = new ConcurrentHashMap<>();
     private final Map<String, List<String>> Userlist= new ConcurrentHashMap<>();
+    private final Map<String, List<Comment>> commentsByEditor = new ConcurrentHashMap<>();
+
     public synchronized Map<String,String>joinSession(String code,String Username)
     {
         //System.out.println("code is: "+code);
@@ -41,7 +43,9 @@ public class DocumentService {
             }
 
         }
-        System.out.println(code);
+        System.out.println("code: "+code);
+
+        System.out.println("editor:"+editorcode);
         List<String> users=Userlist.getOrDefault(editorcode,new ArrayList<>());
         users.add(Username);
 
@@ -142,7 +146,7 @@ public class DocumentService {
         else
         {
             String viewer=roomcode;
-             editorcode="";
+            editorcode="";
             for(Map.Entry<String,String> entry: viewerToEditorMap.entrySet())
             {
                 if(entry.getValue().equals(viewer)){
@@ -152,7 +156,31 @@ public class DocumentService {
         }
         return editorcode;
     }
+    public void addComment(String editorCode, Comment comment) {
+        commentsByEditor.computeIfAbsent(editorCode, k -> new ArrayList<>()).add(comment);
+    }
+
+    public void removeComment(String editorCode, String commentId) {
+//        System.out.println("I am here");
+//        List<Comment> comments = commentsByEditor.getOrDefault(editorCode, new ArrayList<>());
+//        for (Comment comment : comments) {
+//            if (comment.getId().equals(commentId)) {
+//                commentsByEditor.remove(editorCode);
+//            }
+//        }
+//        //return comments;
+        List<Comment> comments = commentsByEditor.getOrDefault(editorCode, new ArrayList<>());
+        comments.removeIf(comment -> comment.getId().equals(commentId));
+        commentsByEditor.put(editorCode,comments);
 
 
+    }
 
+    public void updateComments(String editorCode, List<Comment> updatedComments) {
+        commentsByEditor.put(editorCode, updatedComments);
+    }
+
+    public List<Comment> getComments(String editorCode) {
+        return commentsByEditor.getOrDefault(editorCode, new ArrayList<>());
+    }
 }

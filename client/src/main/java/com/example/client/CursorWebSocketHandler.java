@@ -90,4 +90,11 @@ public class CursorWebSocketHandler {
     public void setCursorHandler(TriConsumer<String, Integer, String> handler) {
         this.cursorHandler = handler;
     }
+    public void disconnect() {
+        if (stompSession != null && stompSession.isConnected()) {
+            stompSession.disconnect();
+            stompSession = null;
+            System.out.println("Disconnected from WebSocket server.");
+        }
+    }
 }

@@ -40,6 +40,7 @@ public class HttpHelper {
         try{
             String params = code+","+username;
             //String params=code;
+            System.out.println(username+" is trying to join");
             sessionCodes=restTemplate.postForObject(url,params,Map.class);
             System.out.println("Session Joined successfully\n");
         }catch (Exception e){

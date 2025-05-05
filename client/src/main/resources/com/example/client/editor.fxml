@@ -41,7 +41,9 @@
 
             <Label text="Active Users:" styleClass="label"/>
             <ListView fx:id="userList" styleClass="list-view"/>
-
+            <ListView fx:id="commentsList" styleClass="list-view"/>
+            <Button fx:id="commentbutton" text="Add Comment" styleClass="button" onAction="#handleAddcomment"></Button>
+            <Button fx:id="commentbutton2" text="Remove Comment" styleClass="button" onAction="#handleRemovecomment"></Button>
             <Button fx:id="endButton" text="End Session" styleClass="action-button" maxWidth="Infinity" onAction="#endSession"/>
         </VBox>
 
