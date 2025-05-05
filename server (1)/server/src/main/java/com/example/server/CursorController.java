@@ -15,4 +15,12 @@ public class CursorController {
         System.out.println("recieved cursor position from "+ message.getUserId()+"with position"+message.getPosition());
         return message; // Broadcast to all room subscribers
     }
+    @MessageMapping("/cursors/{roomId}/disconnect")
+    @SendTo("/topic/cursors/{roomId}")
+    public CursorPositionMessage handleCursorDisconnect(
+            @DestinationVariable String roomId,
+            CursorPositionMessage message) {
+        System.out.println("Received cursor disconnect for user " + message.getUserId());
+        return message; // Broadcast disconnect to all room subscribers
+    }
 }

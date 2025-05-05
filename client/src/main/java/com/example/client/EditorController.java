@@ -391,11 +391,15 @@ public class EditorController {
         System.out.println("Received cursor from: " + userId + " with position " + position + " and color: " + color);
         Platform.runLater(() -> {
             if (userId.equals(UserID)) return;
-            String username = userList.getItems().stream()
-                    .filter(u -> u.equals(userId))
-                    .findFirst()
-                    .orElse(userId);
-            updateRemoteCursor(userId, username, position, color);
+            if(position == null){
+                removeRemoteCursor(userId);
+            }else{
+                String username = userList.getItems().stream()
+                        .filter(u -> u.equals(userId))
+                        .findFirst()
+                        .orElse(userId);
+                updateRemoteCursor(userId, username, position, color);
+            }
         });
     }
 
@@ -598,11 +602,12 @@ public class EditorController {
         textArea.clear();
         userList.getItems().clear();
         commentsList.getItems().clear();
+        removeRemoteCursor(UserID);
         userlistwebsockethandler.leave(roomCode, UserID);
         userlistwebsockethandler.disconnect();
         websockethandler.disconnect();
         commentsHandler.disconnect();
-        cursorWebSocketHandler.disconnect();
+        cursorWebSocketHandler.disconnect(roomCode,UserID);
         updateUndoRedoButtons();
         Node source = (Node) event.getSource();
         Stage currentStage = (Stage) source.getScene().getWindow();
@@ -650,6 +655,19 @@ public class EditorController {
                 commentsHandler.addComment(roomCode, comment);
             }
         });
+    }
+    private void removeRemoteCursor(String userId) {
+        RemoteCursor cursor = remoteCursors.remove(userId);
+        if (cursor != null) {
+            cursorLayer.getChildren().removeIf(node -> {
+                if (node instanceof Group) {
+                    Group group = (Group) node;
+                    return group.getChildren().contains(cursor.line) || group.getChildren().contains(cursor.label);
+                }
+                return false;
+            });
+            System.out.println("Removed cursor for user: " + userId);
+        }
     }
 
     private void updateComments(List<Comment> updatedComments) {

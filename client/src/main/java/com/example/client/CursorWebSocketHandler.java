@@ -46,8 +46,8 @@ public class CursorWebSocketHandler {
         future.addCallback(
                 session -> {
                     stompSession = session;
-                    this.sessionID=session.getSessionId();
-                System.out.println("Successfully connected to WebSocket server.");
+                    this.sessionID = session.getSessionId();
+                    System.out.println("Successfully connected to WebSocket server.");
                     connectionResult.complete(true);
                 },
                 ex -> {
@@ -75,7 +75,11 @@ public class CursorWebSocketHandler {
             public void handleFrame(StompHeaders headers, Object payload) {
                 CursorPositionMessage msg = (CursorPositionMessage) payload;
                 if (cursorHandler != null) {
-                    cursorHandler.accept(msg.getUserId(), msg.getPosition(), msg.getColor());
+                    if (msg.getPosition() == -1) { // Disconnect signal
+                        cursorHandler.accept(msg.getUserId(), null, null); // Notify handler to remove cursor
+                    } else {
+                        cursorHandler.accept(msg.getUserId(), msg.getPosition(), msg.getColor());
+                    }
                 }
             }
         });
@@ -88,14 +92,19 @@ public class CursorWebSocketHandler {
         );
     }
 
-    public void setCursorHandler(TriConsumer<String, Integer, String> handler) {
-        this.cursorHandler = handler;
-    }
-    public void disconnect() {
+    public void disconnect(String roomId, String userId) {
         if (stompSession != null && stompSession.isConnected()) {
+            stompSession.send(
+                    "/app/cursors/" + roomId + "/disconnect",
+                    new CursorPositionMessage(userId, -1, null) // Use -1 position to signal disconnect
+            );
             stompSession.disconnect();
             stompSession = null;
-            System.out.println("Disconnected from WebSocket server.");
+            System.out.println("Disconnected from WebSocket server and sent disconnect signal for " + userId);
         }
+    }
+
+    public void setCursorHandler(TriConsumer<String, Integer, String> handler) {
+        this.cursorHandler = handler;
     }
 }
