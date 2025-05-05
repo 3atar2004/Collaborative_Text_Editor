@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 public class Userlistwebsockethandler {
     private volatile StompSession stompSession;
     private Consumer<List<String>> usershandler;
+    public String IP;
 
     public boolean connectToWebSocket() {
         if (stompSession != null && stompSession.isConnected()) {
@@ -31,7 +32,7 @@ public class Userlistwebsockethandler {
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
-        String url = "ws://localhost:8080/ws";
+        String url = "ws://" + IP + ":8080/ws";
         MyStompSessionHandler sessionHandler = new MyStompSessionHandler();
 
         CompletableFuture<Boolean> connectionResult = new CompletableFuture<>();

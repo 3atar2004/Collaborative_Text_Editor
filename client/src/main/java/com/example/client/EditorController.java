@@ -150,7 +150,7 @@ public class EditorController {
         updateUndoRedoButtons();
     }
 
-    public void initializeWithUsername(String username, String editor, String viewer, boolean edit) throws IOException, InterruptedException {
+    public void initializeWithUsername(String username, String editor, String viewer, boolean edit, String SERVER_IP) throws IOException, InterruptedException {
         if (username != null && !username.trim().isEmpty()) {
             userList.getItems().add(username);
         }
@@ -173,7 +173,10 @@ public class EditorController {
             showAlert("Invalid Room Code", "Room code is not set.");
             return;
         }
-
+        websockethandler.IP = SERVER_IP;
+        userlistwebsockethandler.IP = SERVER_IP;
+        commentsHandler.IP = SERVER_IP;
+        cursorWebSocketHandler.IP = SERVER_IP;
         // Connect to WebSocket
         if (websockethandler.connectToWebSocket()) {
             websockethandler.subscribeToRoom(roomCode);
@@ -181,11 +184,13 @@ public class EditorController {
             showAlert("Connection Failed", "Couldn't connect to WebSocket server");
         }
 
+
         if (userlistwebsockethandler.connectToWebSocket()) {
             userlistwebsockethandler.subscribeToRoom(roomCode);
         } else {
             showAlert("Connection Failed", "Couldn't connect to WebSocket server");
         }
+
 
         if (commentsHandler.connectToWebSocket()) {
             commentsHandler.subscribeToRoom(roomCode);
@@ -193,11 +198,13 @@ public class EditorController {
             showAlert("Connection Failed", "Couldn't connect to WebSocket server for comments");
         }
 
+
         if (cursorWebSocketHandler.connectToWebSocket()) {
             cursorWebSocketHandler.subscribeToCursorUpdates(roomCode);
         } else {
             showAlert("connection failed", "can't connect to websocket server");
         }
+
 
         // Fetch the document from server
         Document doc2 = helper.getDocumentFromCode(roomCode);

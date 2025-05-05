@@ -23,6 +23,7 @@ public class CursorWebSocketHandler {
     private StompSession stompSession;
     private TriConsumer<String, Integer, String> cursorHandler;
     private String sessionID;
+    public String IP;
 
     public boolean connectToWebSocket() {
         if (stompSession != null && stompSession.isConnected()) {
@@ -36,7 +37,7 @@ public class CursorWebSocketHandler {
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
-        String url = "ws://localhost:8080/ws";
+        String url = "ws://" + IP + ":8080/ws";
         MyStompSessionHandler sessionHandler = new MyStompSessionHandler();
 
         CompletableFuture<Boolean> connectionResult = new CompletableFuture<>();
