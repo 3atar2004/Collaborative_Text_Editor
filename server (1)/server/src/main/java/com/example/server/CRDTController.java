@@ -1,5 +1,4 @@
-
-        package com.example.server;
+package com.example.server;
 
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -8,10 +7,10 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class CRDTController {
-    public DocumentService service;
+    private final DocumentService service;
 
-    public CRDTController(DocumentService Service) {
-        this.service = Service;
+    public CRDTController(DocumentService service) {
+        this.service = service;
     }
 
     @MessageMapping("/room/{roomId}")
@@ -19,7 +18,6 @@ public class CRDTController {
     public CRDTOperation handleRoomMessage(@DestinationVariable String roomId, CRDTOperation op) {
         // Step 1: Validate room code
         if (!service.isValidCode(roomId)) {
-            System.out.println("Invalid room ID: " + roomId);
             System.out.println("Invalid room ID: " + roomId);
             return null;
         }
@@ -35,21 +33,29 @@ public class CRDTController {
         Document doc = service.getDocumentFromCode(roomId);
 
         // Step 4: Apply the operation
-        switch (op.getType()) {
-            case "insert":
-                doc.remoteInsert(op.getId(), op.getValue(), op.getParentId());
-                break;
-            case "delete":
-                doc.remoteDelete(op.getId());
-                break;
-            default:
-                System.out.println("Unknown operation type: " + op.getType());
+        try {
+            switch (op.getType()) {
+                case "insert":
+                    doc.remoteInsert(op.getId(), op.getValue(), op.getParentId());
+                    System.out.println("Applied insert operation, document text: " + doc.getText());
+                    break;
+                case "delete":
+                    doc.remoteDelete(op.getId());
+                    System.out.println("Applied delete operation, document text: " + doc.getText());
+                    break;
+                case "cursor":
+                    // Cursor operations don't modify the document, just broadcast
+                    break;
+                default:
+                    System.out.println("Unknown operation type: " + op.getType());
+                    return null;
+            }
+        } catch (Exception e) {
+            System.out.println("Error processing operation: " + op.getType() + ", id: " + op.getId() + ", error: " + e.getMessage());
+            return null;
         }
-        System.out.println(doc.getText());
 
-        //Step 5: Return the op to broadcast to all users in the room
+        // Step 5: Return the op to broadcast to all users in the room
         return op;
     }
 }
-
-

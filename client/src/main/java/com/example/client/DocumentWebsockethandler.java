@@ -100,7 +100,7 @@ public class DocumentWebsockethandler {
         op.setId(id);
         op.setValue(value);
         op.setParentId(parentId);
-        op.setroomId(roomCode);
+        //op.setroomId(roomCode);
 
         String destination = "/app/room/" + roomCode;
         stompSession.send(destination, op);
@@ -116,7 +116,7 @@ public class DocumentWebsockethandler {
         CRDTOperation op = new CRDTOperation();
         op.setType("delete");
         op.setId(id);
-        op.setroomId(roomCode);
+       // op.setroomId(roomCode);
         String destination = "/app/room/"+roomCode;
         stompSession.send(destination,op);
         System.out.println("sent delete op for id: "+id);

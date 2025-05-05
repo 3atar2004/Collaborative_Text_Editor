@@ -1,26 +1,50 @@
 package com.example.server;
 
 public class CRDTOperation {
-    private String type;      // "insert" or "delete"
+    private String type;
     private String id;
-    private char value;       // only used for insert
-    private String parentId;  // only used for insert
-    private String roomId;
+    private char value; // Use char for single-character values
+    private String parentId;
 
-    public CRDTOperation() {} // Needed for deserialization
+    // Default constructor for Jackson
+    public CRDTOperation() {}
 
-    // Getters and setters
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public CRDTOperation(String type, String id, char value, String parentId) {
+        this.type = type;
+        this.id = id;
+        this.value = value;
+        this.parentId = parentId;
+    }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getType() {
+        return type;
+    }
 
-    public char getValue() { return value; }
-    public void setValue(char value) { this.value = value; }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-    public String getParentId() { return parentId; }
-    public void setParentId(String parentId) { this.parentId = parentId; }
-    public void setroomId(String roomID){this.roomId=roomID;}
-    public String getRoomId(){return this.roomId;}
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public char getValue() {
+        return value;
+    }
+
+    public void setValue(char value) {
+        this.value = value;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 }

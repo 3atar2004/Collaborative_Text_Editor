@@ -5,7 +5,6 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.Nulls;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Document {
     @JsonProperty("nodes")
@@ -17,16 +16,10 @@ public class Document {
 
     @JsonProperty("redoStacks")
     private Map<String, Deque<String>> redoStacks = new HashMap<>();
-//    public Document(){}
-//    public Document() {
-//        this.nodes = new HashMap<>();
-//        this.rootId = null;
-//    }
-    public Document() {} // Required by Jackson
-
-
-
+    private final List<CRDTOperation> pendingOperations = Collections.synchronizedList(new ArrayList<>());
     private long lasttimestamp = System.currentTimeMillis();
+
+    public Document() {} // Required by Jackson
 
     private String generateid(String userid) {
         synchronized (this) {
@@ -80,15 +73,20 @@ public class Document {
     }
 
     public void remoteInsert(String id, char value, String parentId) {
-        if (nodes.containsKey(id)) {
-            System.out.println("Skipping duplicate remote insert for id: " + id);
-            return;
-        }
-        if (parentId != null && !nodes.containsKey(parentId)) {
-            throw new IllegalArgumentException("Parent node not found for remote insert: " + parentId);
-        }
-        Node newNode = new Node(id, value, parentId);
         synchronized (this) {
+            if (nodes.containsKey(id)) {
+                System.out.println("Skipping duplicate remote insert for id: " + id);
+                return;
+            }
+            // Check if parent node exists or is null (for root)
+            if (parentId != null && !nodes.containsKey(parentId)) {
+                // Queue the operation if parent is not found
+                pendingOperations.add(new CRDTOperation("insert", id, value, parentId));
+                System.out.println("Queued operation for id: " + id + " due to missing parent: " + parentId);
+                return;
+            }
+            // Perform the insert
+            Node newNode = new Node(id, value, parentId);
             nodes.put(id, newNode);
             if (rootId == null || isEffectivelyEmpty()) {
                 rootId = id;
@@ -98,6 +96,31 @@ public class Document {
                 System.out.println("Set parentId to rootId: " + rootId);
             }
             printNodeDetails();
+            // Process any pending operations that can now be applied
+            processPendingOperations();
+        }
+    }
+
+    private void processPendingOperations() {
+        List<CRDTOperation> appliedOperations = new ArrayList<>();
+        for (CRDTOperation op : pendingOperations) {
+            if (op.getType().equals("insert") && (op.getParentId() == null || nodes.containsKey(op.getParentId()))) {
+                Node node = new Node(op.getId(), op.getValue(), op.getParentId());
+                nodes.put(op.getId(), node);
+                if (op.getParentId() == null && rootId == null) {
+                    rootId = op.getId();
+                    System.out.println("Set rootId to queued node: " + op.getId());
+                }
+                System.out.println("Applied queued operation for id: " + op.getId());
+                printNodeDetails();
+                appliedOperations.add(op);
+            }
+        }
+        pendingOperations.removeAll(appliedOperations);
+
+        // Recursively process pending operations in case new dependencies are resolved
+        if (!appliedOperations.isEmpty()) {
+            processPendingOperations();
         }
     }
 
@@ -136,6 +159,7 @@ public class Document {
         }
         return children;
     }
+
     public List<String> getVisibleNodes() {
         List<String> visibleIds = new ArrayList<>();
         for (Map.Entry<String, Node> entry : nodes.entrySet()) {
@@ -143,8 +167,6 @@ public class Document {
                 visibleIds.add(entry.getKey());
             }
         }
-        // Optional: sort if needed by logical timestamp or order
-        // visibleIds.sort(...);
         return visibleIds;
     }
 
@@ -160,12 +182,14 @@ public class Document {
             return aParts[0].compareTo(bParts[0]);
         });
     }
+
     public void buildFromString(String text, String userId) {
         String parentId = null;
         for (char c : text.toCharArray()) {
             parentId = insert(c, parentId, userId);
-}
+        }
     }
+
     private void traverse(String nodeId, StringBuilder builder) {
         Node node = nodes.get(nodeId);
         if (node == null) {
@@ -173,17 +197,14 @@ public class Document {
             return;
         }
 
-        // Only process non-deleted nodes
         if (!node.isDeleted()) {
             builder.append(node.getValue());
-            System.out.println("Appended node: " + nodeId + " value: " + node.getValue());
+            //System.out.println("Appended node: " + nodeId + " value: " + node.getValue());
         }
 
-        // Get and sort children
         List<Node> children = getchildren(nodeId);
         sortChildren(children);
 
-        // Traverse children
         for (Node child : children) {
             traverse(child.getId(), builder);
         }
@@ -213,8 +234,6 @@ public class Document {
         });
     }
 
-
-
     public void undo(String userId) {
         if (!undoStacks.containsKey(userId)) return;
 
@@ -228,7 +247,6 @@ public class Document {
             node.delete();
             redoStacks.computeIfAbsent(userId, k -> new LinkedList<>()).push(lastId);
 
-            // Check if we need to update rootId
             if (lastId.equals(rootId)) {
                 rootId = null;
             }
@@ -247,24 +265,22 @@ public class Document {
         String id = stack.pop();
         Node node = nodes.get(id);
 
-        if (node != null && node.isDeleted()) {  // Only restore if currently deleted
+        if (node != null && node.isDeleted()) {
             node.restore();
 
-            // Handle parent relationship
             if (node.getLastParentIdBeforeDeletion() != null) {
-                if (!nodes.containsKey(node.getLastParentIdBeforeDeletion()))
-                {
+                if (!nodes.containsKey(node.getLastParentIdBeforeDeletion())) {
                     node.setParentId(rootId != null ? rootId : null);
                 }
             }
 
             undoStacks.computeIfAbsent(userId, k -> new LinkedList<>()).push(id);
 
-            // Debug output
             System.out.println("Redo restored node: " + id);
             printNodeDetails();
         }
     }
+
     public String getLastNodeId() {
         if (rootId == null) return null;
 
@@ -361,3 +377,4 @@ public class Document {
         }
     }
 }
+
