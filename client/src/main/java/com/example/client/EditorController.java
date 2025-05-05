@@ -150,7 +150,7 @@ public class EditorController {
         updateUndoRedoButtons();
     }
 
-    public void initializeWithUsername(String username, String editor, String viewer, boolean edit) throws IOException, InterruptedException {
+    public void initializeWithUsername(String username, String editor, String viewer, boolean edit,String SERVER_IP) throws IOException, InterruptedException {
         if (username != null && !username.trim().isEmpty()) {
             userList.getItems().add(username);
         }
@@ -173,6 +173,10 @@ public class EditorController {
             showAlert("Invalid Room Code", "Room code is not set.");
             return;
         }
+        websockethandler.IP = SERVER_IP;
+        userlistwebsockethandler.IP = SERVER_IP;
+        commentsHandler.IP = SERVER_IP;
+        cursorWebSocketHandler.IP=SERVER_IP;
 
         // Connect to WebSocket
         if (websockethandler.connectToWebSocket()) {
@@ -384,14 +388,17 @@ public class EditorController {
         System.out.println("Received cursor from: " + userId + " with position " + position + " and color: " + color);
         Platform.runLater(() -> {
             if (userId.equals(UserID)) return;
-            String username = userList.getItems().stream()
-                    .filter(u -> u.equals(userId))
-                    .findFirst()
-                    .orElse(userId);
-            updateRemoteCursor(userId, username, position, color);
-        });
-    }
-
+            if(position == null){
+                removeRemoteCursor(userId);
+            }else{
+                String username = userList.getItems().stream()
+                        .filter(u -> u.equals(userId))
+                        .findFirst()
+                        .orElse(userId);
+                updateRemoteCursor(userId, username, position, color);
+            }
+ });
+}
     private void updateRemoteCursor(String userId, String username, int position, String color) {
         if (cursorLayer == null) {
             System.err.println("Cursor layer not initialized!");
@@ -591,24 +598,38 @@ public class EditorController {
         textArea.clear();
         userList.getItems().clear();
         commentsList.getItems().clear();
+        removeRemoteCursor(UserID);
         userlistwebsockethandler.leave(roomCode, UserID);
         userlistwebsockethandler.disconnect();
         websockethandler.disconnect();
         commentsHandler.disconnect();
-        cursorWebSocketHandler.disconnect();
+        cursorWebSocketHandler.disconnect(roomCode,UserID);
         updateUndoRedoButtons();
         Node source = (Node) event.getSource();
         Stage currentStage = (Stage) source.getScene().getWindow();
         currentStage.close();
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
-            Parent root = loader.load();
-            Stage welcomeStage = new Stage();
-            welcomeStage.setTitle("Welcome");
-            welcomeStage.setScene(new Scene(root, 800, 600));
-            welcomeStage.show();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/client/welcome.fxml"));
+        Parent root = loader.load();
+        Stage welcomeStage = new Stage();
+        welcomeStage.setTitle("Welcome");
+        welcomeStage.setScene(new Scene(root, 800, 600));
+        welcomeStage.show();
+        }
+    private void removeRemoteCursor(String userId) {
+        RemoteCursor cursor = remoteCursors.remove(userId);
+        if (cursor != null) {
+            cursorLayer.getChildren().removeIf(node -> {
+                if (node instanceof Group) {
+                    Group group = (Group) node;
+                    return group.getChildren().contains(cursor.line) || group.getChildren().contains(cursor.label);
+                }
+                return false;
+            });
+            System.out.println("Removed cursor for user: " + userId);
+}
+}
 
-    }
 
     @FXML
     private void handleRemovecomment() {

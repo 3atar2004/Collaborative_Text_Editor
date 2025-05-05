@@ -1,4 +1,4 @@
-        package com.example.client;
+package com.example.client;
 
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.*;
@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class DocumentWebsockethandler {
     private volatile StompSession stompSession;
     private Consumer<CRDTOperation> messageHandler;
-
+    public String IP;
     public boolean connectToWebSocket() {
         if (stompSession != null && stompSession.isConnected()) {
             System.out.println("Already connected.");
@@ -33,7 +33,7 @@ public class DocumentWebsockethandler {
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
-        String url = "ws://localhost:8080/ws";
+        String url = "ws://" + IP + ":8080/ws";
         MyStompSessionHandler sessionHandler = new MyStompSessionHandler();
 
         CompletableFuture<Boolean> connectionResult = new CompletableFuture<>();
@@ -116,7 +116,7 @@ public class DocumentWebsockethandler {
         CRDTOperation op = new CRDTOperation();
         op.setType("delete");
         op.setId(id);
-       // op.setroomId(roomCode);
+        //op.setroomId(roomCode);
         String destination = "/app/room/"+roomCode;
         stompSession.send(destination,op);
         System.out.println("sent delete op for id: "+id);
@@ -124,8 +124,5 @@ public class DocumentWebsockethandler {
 
     public void setMessageHandler(Consumer<CRDTOperation> handler) {
         this.messageHandler = handler;
-    }
 }
-
-
-
+}
