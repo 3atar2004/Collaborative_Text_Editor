@@ -25,7 +25,7 @@
     -fx-background-color: #2196F3; /* Blue */
     -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-font-size: 16px;
+    -fx-font-size: 12px;
     -fx-padding: 5 15;
     -fx-background-radius: 5;
 }
@@ -140,4 +140,17 @@
 
 .comment-highlight-background {
     -fx-fill: rgba(255, 215, 0, 0.2); /* Semi-transparent gold */
+}
+.small-button {
+    -fx-background-color: #2196F3; /* Changed to match action-button blue */
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-padding: 3 8;
+    -fx-min-width: 60px;
+    -fx-max-height: 24px;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+.small-button:hover {
+    -fx-background-color: #1976D2; /* Match action-button hover */
 }

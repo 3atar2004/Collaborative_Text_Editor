@@ -10,6 +10,7 @@
       fx:controller="com.example.client.EditorController" stylesheets="@styles.css">
     <HBox styleClass="header-box" alignment="CENTER_LEFT">
         <Label fx:id="titleLabel" styleClass="title-label"/>
+        <Label fx:id="copyFeedbackLabel" styleClass="copy-feedback" text="" visible="false"/>
     </HBox>
 
     <HBox>
@@ -18,20 +19,36 @@
                 <padding>
                     <Insets top="5" right="5" bottom="5" left="5"/>
                 </padding>
-                <Button text="Import" styleClass="action-button" onAction="#handleImport"/>
-                <Button text="Export" styleClass="action-button" onAction="#handleExport"/>
+                <Button text="Import" styleClass="action-button" onAction="#handleImport">
+                    <tooltip>
+                        <Tooltip text="Import a file into the editor"/>
+                    </tooltip>
+                </Button>
+                <Button text="Export" styleClass="action-button" onAction="#handleExport">
+                    <tooltip>
+                        <Tooltip text="Export the current document"/>
+                    </tooltip>
+                </Button>
             </HBox>
 
             <HBox spacing="5" alignment="CENTER_LEFT">
                 <Label fx:id="edit_label" text="Editor Code:" styleClass="label"/>
                 <TextField fx:id="editorCodeField" styleClass="text-field" prefWidth="120" editable="false"/>
-                <Button fx:id="copyEditorButton" text="Copy" styleClass="button" onAction="#copyEditorCode"/>
+                <Button fx:id="copyEditorButton" text="Copy" styleClass="small-button" onAction="#copyEditorCode">
+                    <tooltip>
+                        <Tooltip text="Copy editor code to clipboard"/>
+                    </tooltip>
+                </Button>
             </HBox>
 
             <HBox spacing="5" alignment="CENTER_LEFT">
                 <Label fx:id="view_label" text="Viewer Code:" styleClass="label"/>
                 <TextField fx:id="viewerCodeField" styleClass="text-field" prefWidth="120" editable="false"/>
-                <Button fx:id="copyViewerButton" text="Copy" styleClass="button" onAction="#copyViewerCode"/>
+                <Button fx:id="copyViewerButton" text="Copy" styleClass="small-button" onAction="#copyViewerCode">
+                    <tooltip>
+                        <Tooltip text="Copy viewer code to clipboard"/>
+                    </tooltip>
+                </Button>
             </HBox>
 
             <HBox spacing="5" alignment="CENTER">
@@ -42,8 +59,8 @@
             <Label text="Active Users:" styleClass="label"/>
             <ListView fx:id="userList" styleClass="list-view"/>
             <ListView fx:id="commentsList" styleClass="list-view"/>
-            <Button fx:id="commentbutton" text="Add Comment" styleClass="button" onAction="#handleAddcomment"></Button>
-            <Button fx:id="commentbutton2" text="Remove Comment" styleClass="button" onAction="#handleRemovecomment"></Button>
+            <Button fx:id="commentbutton" text="Add Comment" styleClass="action-button" onAction="#handleAddcomment"></Button>
+
             <Button fx:id="endButton" text="End Session" styleClass="action-button" maxWidth="Infinity" onAction="#endSession"/>
         </VBox>
 

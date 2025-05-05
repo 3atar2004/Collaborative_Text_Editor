@@ -16,6 +16,7 @@ public class WelcomeController {
     @FXML private TextField sessionField;
     @FXML private HBox joinSessionBox;
     HttpHelper helper=new HttpHelper();
+
     public String SERVER_URL;
     public String SERVER_IP;
     @FXML
@@ -37,10 +38,13 @@ public class WelcomeController {
         }
     }
 
+
+
     @FXML
     private void handleJoinSession() {
         joinSessionBox.setVisible(true);
     }
+
 
     @FXML
     private void handleJoinSessionSubmit() throws IOException, InterruptedException {

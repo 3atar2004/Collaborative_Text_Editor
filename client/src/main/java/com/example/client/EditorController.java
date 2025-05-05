@@ -53,6 +53,7 @@ public class EditorController {
     @FXML private ScrollPane textScrollPane;
     @FXML private Button commentbutton;
     @FXML private Pane cursorLayer;
+    @FXML private Label copyFeedbackLabel;
 
     private List<String> user_list = new ArrayList<>();
     private DocumentWebsockethandler websockethandler;
@@ -564,19 +565,25 @@ public class EditorController {
     }
 
     @FXML
-    private void copyEditorCode(ActionEvent event) {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent content = new ClipboardContent();
-        content.putString(editorCodeField.getText());
-        clipboard.setContent(content);
+    public void copyEditorCode() {
+        if (editorCodeField != null) {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(editorCodeField.getText());
+            clipboard.setContent(content);
+            showCopyFeedback("Editor code copied!");
+        }
     }
 
     @FXML
-    private void copyViewerCode(ActionEvent event) {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent content = new ClipboardContent();
-        content.putString(viewerCodeField.getText());
-        clipboard.setContent(content);
+    public void copyViewerCode() {
+        if (viewerCodeField != null) {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(viewerCodeField.getText());
+            clipboard.setContent(content);
+            showCopyFeedback("Viewer code copied!");
+        }
     }
 
     @FXML
@@ -585,7 +592,21 @@ public class EditorController {
         textArea.setText(document.getText());
         updateUndoRedoButtons();
     }
-
+    @FXML
+    private void showCopyFeedback(String message) {
+        if (copyFeedbackLabel != null) {
+            copyFeedbackLabel.setText(message);
+            copyFeedbackLabel.setVisible(true);
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                    Platform.runLater(() -> copyFeedbackLabel.setVisible(false));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+        }
+    }
     @FXML
     private void redo(ActionEvent event) {
         document.redo(UserID);
